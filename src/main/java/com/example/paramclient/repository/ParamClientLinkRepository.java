@@ -39,6 +39,13 @@ public interface ParamClientLinkRepository extends JpaRepository<ParamClientLink
             @Param("clientRole") ClientRole clientRole
     );
 
+    default Optional<ClientInfoDto> findClientInfoByParamIdAndClientRole(
+            UUID paramId,
+            ClientRole clientRole
+    ) {
+        return findClientInfoHql(paramId, clientRole);
+    }
+
     @Query(value = """
             select
                 c.id as client_id,
