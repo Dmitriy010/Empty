@@ -28,20 +28,30 @@ public class ParamClientLookupService {
     }
 
     private ClientInfoDto getClientByRole(UUID paramId, ClientRole role, boolean allowUnknown) {
-        ClientInfoDto clientInfo = linkRepository
-                .findClientInfo(paramId, role)
+        ParamClientLinkRepository.ClientInfoNativeProjection projection = linkRepository
+                .findClientInfoNative(paramId, role.name())
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Client link not found"
                 ));
 
-        if (!allowUnknown && clientInfo.getClientType() == ClientType.UNKNOWN) {
+        ClientType clientType = ClientType.valueOf(projection.getClientType());
+        if (!allowUnknown && clientType == ClientType.UNKNOWN) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Unsupported client type for role"
             );
         }
 
-        return clientInfo;
+        return ClientInfoDto.builder()
+                .clientId(projection.getClientId())
+                .clientRole(role)
+                .clientType(clientType)
+                .name(projection.getName())
+                .firstName(projection.getFirstName())
+                .middleName(projection.getMiddleName())
+                .lastName(projection.getLastName())
+                .tin(projection.getTin())
+                .build();
     }
 }
